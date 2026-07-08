@@ -2,6 +2,61 @@
 
 api is a Rust project that implements an AWS Lambda function in Rust.
 
+## Neon Postgres setup
+
+This service is prepared to read Neon connection strings from environment variables.
+
+- `DATABASE_URL`: the pooled Neon connection string used by the running Lambda
+- `MIGRATION_DATABASE_URL`: the direct Neon connection string used for schema setup and migrations
+
+Copy `.env.example` to `.env` and replace the placeholder values with the connection details from the Neon Console.
+
+Example:
+
+```env
+DATABASE_URL=postgresql://app_user:replace_me@ep-example-pooler.ap-southeast-1.aws.neon.tech/expense_tracker?sslmode=require&channel_binding=require
+MIGRATION_DATABASE_URL=postgresql://app_user:replace_me@ep-example.ap-southeast-1.aws.neon.tech/expense_tracker?sslmode=require&channel_binding=require
+```
+
+Why two URLs:
+
+- Neon recommends pooled connections for serverless app traffic
+- direct connections are safer for migrations and admin tasks
+
+## Migrations
+
+This project uses ordered SQL migration files in `migrations/`.
+
+Examples:
+
+- `001_init.sql`
+- `002_add_transaction_notes.sql`
+- `003_create_budget_table.sql`
+
+Use the Rust migration runner to apply all unapplied files in order:
+
+```bash
+cargo run --bin migrate
+```
+
+The runner:
+
+- scans the `migrations/` directory
+- applies `.sql` files in filename order
+- records applied files in a `schema_migrations` table
+- skips files that were already applied
+
+If you want to inspect or apply a single file manually with `psql`:
+
+```bash
+psql "$MIGRATION_DATABASE_URL" -f migrations/001_init.sql
+```
+
+Best practice:
+
+- do not keep editing old migrations once they have been applied anywhere important
+- create a new numbered SQL file for each schema change
+
 ## Prerequisites
 
 - [Rust](https://www.rust-lang.org/tools/install)

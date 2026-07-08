@@ -25,8 +25,8 @@ pub(crate) async fn function_handler(event: Request) -> Result<Response<Body>, E
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
     use lambda_http::{Request, RequestExt};
+    use std::collections::HashMap;
 
     #[tokio::test]
     async fn test_generic_http_handler() {
@@ -49,8 +49,7 @@ mod tests {
         let mut query_string_parameters: HashMap<String, String> = HashMap::new();
         query_string_parameters.insert("name".into(), "api".into());
 
-        let request = Request::default()
-            .with_query_string_parameters(query_string_parameters);
+        let request = Request::default().with_query_string_parameters(query_string_parameters);
 
         let response = function_handler(request).await.unwrap();
         assert_eq!(response.status(), 200);
@@ -58,9 +57,6 @@ mod tests {
         let body_bytes = response.body().to_vec();
         let body_string = String::from_utf8(body_bytes).unwrap();
 
-        assert_eq!(
-            body_string,
-            "Hello api, this is an AWS Lambda HTTP request"
-        );
+        assert_eq!(body_string, "Hello api, this is an AWS Lambda HTTP request");
     }
 }
